@@ -1,10 +1,11 @@
 import datetime as dt
-import os
 from pathlib import Path
 
 import psycopg
 from openpyxl import load_workbook
 from psycopg import sql
+
+from app.db import dsn
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
@@ -21,11 +22,6 @@ NULLABLE_OVERRIDES = {
     "pref01n001": {"pd_exg_mkt_cd"},  # 1,780행 중 3행 빈 값
     "prfd01n001": {"zrin_fd_ivst_risk_gcd"},  # 23,676행 중 14,987행 빈 값
 }
-
-
-def dsn() -> str:
-    # SQLAlchemy 형식(postgresql+psycopg://)을 libpq 형식으로 변환
-    return os.environ["DATABASE_URL"].replace("postgresql+psycopg://", "postgresql://")
 
 
 def read_schema(path: Path) -> list[dict]:
