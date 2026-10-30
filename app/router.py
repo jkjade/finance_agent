@@ -1,5 +1,7 @@
 """질문을 상품 도메인(테이블) 하나로 분류한다."""
 
+from openai import BadRequestError
+
 from app import llm
 from app.domains import DOMAINS, Domain
 
@@ -22,10 +24,18 @@ SYSTEM = "너는 금융상품 질문 분류기다. 질문을 읽고 select_domai
 
 
 def route(question: str) -> Domain | None:
-    msg = llm.chat(
-        [{"role": "system", "content": SYSTEM}, {"role": "user", "content": question}],
-        tools=[ROUTER_TOOL],
-        tool_choice={"type": "function", "function": {"name": "select_domain"}},
-    )
+    try:
+        msg = llm.chat(
+            [{"role": "system", "content": SYSTEM}, {"role": "user", "content": question}],
+            tools=[ROUTER_TOOL],
+            tool_choice={"type": "function", "function": {"name": "select_domain"}},
+        )
+    except BadRequestError as e:
+        # CLOVA 는 강제한 함수를 부를 이유가 없는 질문이면 40009(Unsupported function) 로 거절한다
+        if "40009" in str(e):
+            return None
+        raise
+    if not msg.tool_calls:
+        return None
     key = llm.parse_arguments(msg.tool_calls[0].function.arguments)["domain"]
     return DOMAINS.get(key)
