@@ -30,6 +30,11 @@ def build_search_tool(domain: Domain, fields: tuple[Field, ...]) -> dict:
                         "type": "array",
                         "items": {"type": "string", "enum": format_fields(fields)},
                         "description": "조회할 컬럼 목록. 질문에 답하는 데 필요한 컬럼만 고른다.",
+                    },
+                    "operator": {
+                        "type": "string",
+                        "enum": ["=", "<", ">", "<=", ">=", "!="],
+                        "description": "조회 조건 연산자. 기본값은 '='.",
                     }
                 },
                 "required": ["select"],
